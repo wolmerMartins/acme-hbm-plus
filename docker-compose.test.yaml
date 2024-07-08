@@ -1,0 +1,9 @@
+services:
+  unit-test:
+    build:
+      context: ./
+      dockerfile: dev.dockerfile
+    image: dev-acme-hbm-plus
+    volumes:
+      - ./:/app
+    command: 'npm run test:watch'
