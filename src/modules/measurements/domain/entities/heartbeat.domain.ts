@@ -6,7 +6,8 @@ export class Heartbeat {
   constructor(
     private rate: number,
     private period: number,
-    private date: Date
+    private date: Date,
+    private id?: string
   ) {
     this.checkIfIsIrregular()
   }
@@ -31,5 +32,21 @@ export class Heartbeat {
     const difference = this.rate * 100 / baseline
 
     this.isIrregular = Math.abs(difference - 100) >= BASELINE_DIFFERENCE_LIMIT
+  }
+
+  public isRegular(): boolean {
+    return !this.isIrregular
+  }
+
+  public getDate(): Date {
+    return this.date
+  }
+
+  public getId(): string {
+    return this.id
+  }
+
+  public setId(id: string): void {
+    this.id = id
   }
 }
