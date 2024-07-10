@@ -1,3 +1,4 @@
+import { Profile } from 'src/modules/profiles/domain/entities/profile.domain'
 import { Heartbeat } from '../entities/heartbeat.domain'
 import { MeasurementWarning } from '../entities/measurement-warning.domain'
 import { IMeasurementsPublisher } from '../ports/measurements.publisher'
@@ -13,43 +14,43 @@ export class MeasurementsService implements IMeasurementsService {
     private readonly publisher: IMeasurementsPublisher
   ) {}
 
-  private async finishWarning(heartbeat: Heartbeat, warning?: MeasurementWarning): Promise<void> {
+  private async finishWarning(profile: Profile, heartbeat: Heartbeat, warning?: MeasurementWarning): Promise<void> {
     if (!warning) return
 
-    const irregularMeasurements = await this.repository.findIrregularsSince(warning.getStartedAt())
+    const irregularMeasurements = await this.repository.findIrregularsSince(profile, warning.getStartedAt())
     if (irregularMeasurements.length) return
 
     warning.setEndHeartbeatId(heartbeat.getId())
     warning.setEndedAt(heartbeat.getDate())
 
-    await this.repository.finishWarning(warning)
+    await this.repository.finishWarning(profile, warning)
 
-    await this.publisher.notifyWarning(warning)
+    await this.publisher.notifyWarning(profile, warning)
   }
 
-  private async registerWarning(heartbeat: Heartbeat, activeWarning?: MeasurementWarning): Promise<void> {
+  private async registerWarning(profile: Profile, heartbeat: Heartbeat, activeWarning?: MeasurementWarning): Promise<void> {
     if (activeWarning) return
 
-    const irregularMeasurements = await this.repository.findIrregularsInLast(MEASUREMENTS_COUNT)
+    const irregularMeasurements = await this.repository.findIrregularsInLast(profile, MEASUREMENTS_COUNT)
     if (irregularMeasurements.length < MINIMUM_IRREGULARS_TO_WARNING) return
 
     const warning = new MeasurementWarning(heartbeat.getId(), heartbeat.getDate())
 
-    await this.repository.registerWarning(warning)
+    await this.repository.registerWarning(profile, warning)
 
-    await this.publisher.notifyWarning(warning)
+    await this.publisher.notifyWarning(profile, warning)
   }
 
-  public async checkCondition(heartbeat: Heartbeat): Promise<void> {
-    const id = await this.repository.register(heartbeat)
+  public async checkCondition(profile: Profile, heartbeat: Heartbeat): Promise<void> {
+    const id = await this.repository.register(profile, heartbeat)
 
-    const activeWarning = await this.repository.findActiveWarning()
+    const activeWarning = await this.repository.findActiveWarning(profile)
     if (heartbeat.isRegular() && !activeWarning) return
 
     heartbeat.setId(id)
 
-    await this.registerWarning(heartbeat, activeWarning)
+    await this.registerWarning(profile, heartbeat, activeWarning)
 
-    await this.finishWarning(heartbeat, activeWarning)
+    await this.finishWarning(profile, heartbeat, activeWarning)
   }
 }
