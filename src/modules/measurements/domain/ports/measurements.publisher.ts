@@ -1,5 +1,6 @@
+import { Profile } from 'src/modules/profiles/domain/entities/profile.domain'
 import { MeasurementWarning } from '../entities/measurement-warning.domain'
 
 export interface IMeasurementsPublisher {
-  notifyWarning(warning: MeasurementWarning): Promise<void>
+  notifyWarning(profile: Profile, warning: MeasurementWarning): Promise<void>
 }
