@@ -11,7 +11,12 @@ RUN npm i
 
 FROM base_image AS app
 
+EXPOSE 4000
+
+WORKDIR /app
+
 COPY --from=dependencies /app/node_modules /app/node_modules
+COPY conf/.env.development /app/.env
 
 COPY . .
 
