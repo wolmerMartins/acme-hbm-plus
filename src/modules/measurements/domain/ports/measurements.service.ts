@@ -4,3 +4,5 @@ import { Heartbeat } from '../entities/heartbeat.domain'
 export interface IMeasurementsService {
   checkCondition(profile: Profile, heartbeat: Heartbeat): Promise<void>
 }
+
+export const IMeasurementsService = Symbol('IMeasurementsService')

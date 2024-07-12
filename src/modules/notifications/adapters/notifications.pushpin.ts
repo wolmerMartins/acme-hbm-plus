@@ -11,15 +11,15 @@ export class NotificationsPushpin implements INotificationsAdapter {
   ) {}
 
   public async publish<T extends object>(notification: Notification<T>): Promise<void> {
-    await post(this.config.getValue(NOTIFICATION_URL))
+    await post(`${this.config.getValue(NOTIFICATION_URL)}/publish`)
       .send({
         items: [
           {
             channel: notification.getProfile(),
-            id: Date.now(),
+            id: `${Date.now()}`,
             formats: {
               'http-stream': {
-                content: JSON.stringify(notification)
+                content: `${JSON.stringify(notification)}\n`
               }
             },
           }

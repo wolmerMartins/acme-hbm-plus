@@ -4,3 +4,5 @@ export interface IProfilesService {
   getByName(name: string): Promise<Profile | undefined>
   create(profile: Profile): Promise<void>
 }
+
+export const IProfilesService = Symbol('IProfilesService')
