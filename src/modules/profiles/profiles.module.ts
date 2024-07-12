@@ -25,6 +25,7 @@ import { ProfilesService } from './domain/services/profiles'
       inject: [IProfilesRepository]
     }
   ],
-  controllers: [ProfilesController]
+  controllers: [ProfilesController],
+  exports: [IProfilesService]
 })
 export class ProfilesModule {}

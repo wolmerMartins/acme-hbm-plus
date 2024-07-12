@@ -1,4 +1,5 @@
 import { Heartbeat } from '../domain/entities/heartbeat.domain'
+import { MeasurementDTO } from '../dtos/measurement.dto'
 import { MeasurementsSchema } from '../repositories/schemas/measurements.schema'
 
 export class HeartbeatMapper {
@@ -8,6 +9,14 @@ export class HeartbeatMapper {
       entity.period,
       entity.date,
       entity._id.toString()
+    )
+  }
+
+  public static measurementToDomain(measurement: MeasurementDTO): Heartbeat {
+    return new Heartbeat(
+      measurement.rate,
+      measurement.period,
+      new Date()
     )
   }
 }
