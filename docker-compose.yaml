@@ -6,7 +6,7 @@ services:
     image: dev-acme-hbm-plus
     develop:
       watch:
-        - action: sync
+        - action: sync+restart
           path: ./src
           target: /app/src
           ignore:
@@ -19,6 +19,8 @@ services:
     depends_on:
       database-starter:
         condition: service_completed_successfully
+      pushpin:
+        condition: service_started
 
   mongodb:
     container_name: database
@@ -36,3 +38,10 @@ services:
       mongodb:
         condition: service_started
     command: docker exec database /scripts/init-database.sh
+
+  pushpin:
+    image: fanout/pushpin:1.39.1
+    environment:
+      target: app:4000
+    ports:
+      - 4000:7999
