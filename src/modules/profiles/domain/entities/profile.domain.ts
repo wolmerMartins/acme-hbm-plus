@@ -7,4 +7,8 @@ export class Profile {
   public getName(): string {
     return this.name
   }
+
+  public getId(): string | undefined {
+    return this.id
+  }
 }

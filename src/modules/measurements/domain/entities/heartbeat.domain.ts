@@ -38,6 +38,14 @@ export class Heartbeat {
     return !this.isIrregular
   }
 
+  public getRate(): number {
+    return this.rate
+  }
+
+  public getPeriod(): number {
+    return this.period
+  }
+
   public getDate(): Date {
     return this.date
   }
