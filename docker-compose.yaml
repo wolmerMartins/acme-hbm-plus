@@ -42,6 +42,6 @@ services:
   pushpin:
     image: fanout/pushpin:1.39.1
     environment:
-      target: app
+      target: app:4000
     ports:
       - 4000:7999

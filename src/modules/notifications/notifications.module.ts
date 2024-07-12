@@ -5,6 +5,7 @@ import { INotificationsAdapter } from './domain/ports/notifications.adapter'
 import { NotificationsPushpin } from './adapters/notifications.pushpin'
 import { INotificationsService } from './domain/ports/notifications.service'
 import { NotificationsService } from './domain/services/notifications'
+import { NotificationsController } from './controllers/notifications.controller'
 
 @Module({
   providers: [
@@ -23,6 +24,7 @@ import { NotificationsService } from './domain/services/notifications'
       },
       inject: [INotificationsAdapter]
     }
-  ]
+  ],
+  controllers: [NotificationsController]
 })
 export class NotificationsModule {}
