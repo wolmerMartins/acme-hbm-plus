@@ -10,3 +10,5 @@ export interface IMeasurementsRepository {
   findActiveWarning(profile: Profile): Promise<MeasurementWarning | undefined>
   finishWarning(profile: Profile, measurementWarning: MeasurementWarning): Promise<void>
 }
+
+export const IMeasurementsRepository = Symbol('IMeasurementsRepository')

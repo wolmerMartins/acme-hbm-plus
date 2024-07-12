@@ -4,3 +4,5 @@ export interface IProfilesRepository {
   getByName(name: string): Promise<Profile | undefined>
   create(profile: Profile): Promise<void>
 }
+
+export const IProfilesRepository = Symbol('IProfilesRepository')
