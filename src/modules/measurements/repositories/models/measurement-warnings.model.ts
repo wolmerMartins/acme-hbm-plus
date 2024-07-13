@@ -16,7 +16,10 @@ export class MeasurementWarningsModel {
   public async findOne(
     filter: FilterQuery<MeasurementWarningsSchema>
   ): Promise<MeasurementWarningsSchema | undefined> {
-    const document = await this.collection.findOne(filter).lean()
+    const document = await this.collection
+      .findOne(filter)
+      .sort({ endedAt: -1 })
+      .lean()
 
     return document ?? undefined
   }

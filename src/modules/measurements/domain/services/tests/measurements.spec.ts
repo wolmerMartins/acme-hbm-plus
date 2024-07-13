@@ -11,7 +11,7 @@ describe('measurements', () => {
 
   class RepositoryMock implements IMeasurementsRepository {
     register = jest.fn<Promise<string>, [profile: Profile, heartbeat: Heartbeat]>()
-    findIrregularsInLast = jest.fn<Promise<Heartbeat[]>, [profile: Profile, measurementsCount: number]>(
+    findIrregularsInLast = jest.fn<Promise<Heartbeat[]>, [profile: Profile, measurementsCount: number, since?: Date]>(
       () => Promise.resolve([])
     )
     findIrregularsSince = jest.fn<Promise<Heartbeat[]>, [profile: Profile, warningStart: Date]>(
@@ -23,6 +23,7 @@ describe('measurements', () => {
     countSince = jest.fn<Promise<number>, [profile: Profile, warningStart: Date]>(
       () => Promise.resolve(60)
     )
+    findLastWarning = jest.fn<Promise<MeasurementWarning | undefined>, [profile: Profile]>()
   }
 
   class PublisherMock implements IMeasurementsPublisher {
@@ -53,10 +54,32 @@ describe('measurements', () => {
       expect(repositoryMock.findIrregularsInLast).not.toHaveBeenCalled()
     })
 
+    it('should find the last warning before retrieve the last measurements', async () => {
+      await service.checkCondition(profile, irregularHeartbeat)
+
+      expect(repositoryMock.findActiveWarning).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.findLastWarning).toHaveBeenCalledTimes(1)
+    })
+
     it('should retrieve the last measurements if the current measurement is irregular', async () => {
       await service.checkCondition(profile, irregularHeartbeat)
 
       expect(repositoryMock.findIrregularsInLast).toHaveBeenCalledTimes(1)
+    })
+
+    it('should retrieve the last measurements since the end of the last warning', async () => {
+      const endedAt = new Date()
+
+      repositoryMock.findLastWarning.mockResolvedValueOnce(new MeasurementWarning(randomUUID(), new Date(), randomUUID(), endedAt))
+
+      await service.checkCondition(profile, irregularHeartbeat)
+
+      expect(repositoryMock.findLastWarning).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.findIrregularsInLast).toHaveBeenCalledWith(
+        profile,
+        60,
+        endedAt
+      )
     })
 
     it('should not register a warning if it has less than five irregulars measurements in the last sixty', async () => {

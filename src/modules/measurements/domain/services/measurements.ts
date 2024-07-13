@@ -40,7 +40,13 @@ export class MeasurementsService implements IMeasurementsService {
   private async registerWarning(profile: Profile, heartbeat: Heartbeat, activeWarning?: MeasurementWarning): Promise<void> {
     if (activeWarning) return
 
-    const irregularMeasurements = await this.repository.findIrregularsInLast(profile, MEASUREMENTS_COUNT)
+    const lastWarning = await this.repository.findLastWarning(profile)
+
+    const irregularMeasurements = await this.repository.findIrregularsInLast(
+      profile,
+      MEASUREMENTS_COUNT,
+      lastWarning?.getEndedAt()
+    )
     if (irregularMeasurements.length < MINIMUM_IRREGULARS_TO_WARNING) return
 
     const warning = new MeasurementWarning(heartbeat.getId(), heartbeat.getDate())

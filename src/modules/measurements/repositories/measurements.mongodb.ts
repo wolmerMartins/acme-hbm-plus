@@ -25,12 +25,20 @@ export class MeasurementsMongoDB implements IMeasurementsRepository {
     return id
   }
 
-  public async findIrregularsInLast(profile: Profile, measurementsCount: number): Promise<Heartbeat[]> {
+  public async findIrregularsInLast(profile: Profile, measurementsCount: number, since?: Date): Promise<Heartbeat[]> {
+    const filter = {
+      profileId: profile.getId(),
+      isRegular: false
+    }
+
+    if (since) {
+      filter['date'] = {
+        $gt: since
+      }
+    }
+
     const documents = await this.measurementsModel.find(
-      {
-        profileId: profile.getId(),
-        isRegular: false
-      },
+      filter,
       measurementsCount,
       {
         date: -1
@@ -105,5 +113,17 @@ export class MeasurementsMongoDB implements IMeasurementsRepository {
     )
 
     return count
+  }
+
+  public async findLastWarning(profile: Profile): Promise<MeasurementWarning | undefined> {
+    const document = await this.measurementWarningsModel.findOne(
+      {
+        profileId: profile.getId()
+      }
+    )
+
+    return document
+      ? MeasurementWarningMapper.entityToDomain(document)
+      : undefined
   }
 }
