@@ -9,11 +9,15 @@ export class NotificationsService implements INotificationsService {
     private readonly adapter: INotificationsAdapter
   ) {}
 
-  public async subscribe(profileName: string): Promise<Subscription> {
+  public subscribe(profileName: string): Subscription {
     return new Subscription(profileName)
   }
 
   public async publish<T extends object>(profile: Profile, data: T): Promise<void> {
     await this.adapter.publish(new Notification(profile.getName(), data))
+  }
+
+  public async unsubscribe(profileName: string): Promise<void> {
+    await this.adapter.close(profileName)
   }
 }

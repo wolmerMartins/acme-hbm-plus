@@ -7,6 +7,12 @@ import { INotificationsService } from './domain/ports/notifications.service'
 import { NotificationsService } from './domain/services/notifications'
 import { NotificationsController } from './controllers/notifications.controller'
 import { WarningConsumer } from './consumers/warning.consumer'
+import { ISubscribe } from './services/subscribe'
+import { SubscribeUseCase } from './services/implementations/subscribe.usecase'
+import { IUnsubscribe } from './services/unsubscribe'
+import { UnsubscribeUseCase } from './services/implementations/unsubscribe.usecase'
+import { IPublish } from './services/publish'
+import { PublishUseCase } from './services/implementations/publish.usecase'
 
 @Module({
   providers: [
@@ -21,9 +27,38 @@ import { WarningConsumer } from './consumers/warning.consumer'
     {
       provide: INotificationsService,
       useFactory() {
-        return new NotificationsService(...arguments as unknown as [INotificationsAdapter])
+        return new NotificationsService(
+          ...arguments as unknown as [INotificationsAdapter]
+        )
       },
       inject: [INotificationsAdapter]
+    },
+    {
+      provide: ISubscribe,
+      useFactory() {
+        return new SubscribeUseCase(
+          ...arguments as unknown as [INotificationsService]
+        )
+      },
+      inject: [INotificationsService]
+    },
+    {
+      provide: IUnsubscribe,
+      useFactory() {
+        return new UnsubscribeUseCase(
+          ...arguments as unknown as [INotificationsService]
+        )
+      },
+      inject: [INotificationsService]
+    },
+    {
+      provide: IPublish,
+      useFactory() {
+        return new PublishUseCase(
+          ...arguments as unknown as [INotificationsService]
+        )
+      },
+      inject: [INotificationsService]
     },
     WarningConsumer
   ],
