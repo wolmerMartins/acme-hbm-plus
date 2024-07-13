@@ -36,4 +36,10 @@ export class MeasurementsModel {
 
     return documents
   }
+
+  public async count(filter: FilterQuery<MeasurementsSchema>): Promise<number> {
+    const count = await this.collection.countDocuments(filter)
+
+    return count
+  }
 }

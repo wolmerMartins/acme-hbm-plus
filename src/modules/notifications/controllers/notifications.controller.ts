@@ -1,24 +1,34 @@
 import { Controller, Inject, Param, Post, Response } from '@nestjs/common'
-
-import { INotificationsService } from '../domain/ports/notifications.service'
 import { Response as Res } from 'express'
 
-@Controller('notifications')
+import { ISubscribe } from '../services/subscribe'
+import { IUnsubscribe } from '../services/unsubscribe'
+
+@Controller('notifications/:profileName')
 export class NotificationsController {
   constructor(
-    @Inject(INotificationsService)
-    private readonly service: INotificationsService
+    @Inject(ISubscribe)
+    private readonly subscribe: ISubscribe,
+    @Inject(IUnsubscribe)
+    private readonly unsubscribe: IUnsubscribe
   ) {}
 
-  @Post(':profileName/subscribe')
-  public async subscribe(
+  @Post('subscribe')
+  public async subscribeToChannel(
     @Param('profileName') profileName: string,
     @Response() response: Res
   ) {
-    const subscription = await this.service.subscribe(profileName)
+    const subscription = await this.subscribe.execute({ profileName })
 
     response
       .writeHead(202, subscription.getHeaders())
       .end()
+  }
+
+  @Post('unsubscribe')
+  public async unsubscribeToChannel(
+    @Param('profileName') profileName: string
+  ) {
+    await this.unsubscribe.execute({ profileName })
   }
 }

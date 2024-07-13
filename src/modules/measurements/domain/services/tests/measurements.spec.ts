@@ -11,7 +11,7 @@ describe('measurements', () => {
 
   class RepositoryMock implements IMeasurementsRepository {
     register = jest.fn<Promise<string>, [profile: Profile, heartbeat: Heartbeat]>()
-    findIrregularsInLast = jest.fn<Promise<Heartbeat[]>, [profile: Profile, measurementsCount: number]>(
+    findIrregularsInLast = jest.fn<Promise<Heartbeat[]>, [profile: Profile, measurementsCount: number, since?: Date]>(
       () => Promise.resolve([])
     )
     findIrregularsSince = jest.fn<Promise<Heartbeat[]>, [profile: Profile, warningStart: Date]>(
@@ -20,6 +20,10 @@ describe('measurements', () => {
     registerWarning = jest.fn<Promise<void>, [profile: Profile, measurementWarning: MeasurementWarning]>()
     findActiveWarning = jest.fn<Promise<MeasurementWarning | undefined>, [profile: Profile]>()
     finishWarning = jest.fn<Promise<void>, [profile: Profile, measurementWarning: MeasurementWarning]>()
+    countSince = jest.fn<Promise<number>, [profile: Profile, warningStart: Date]>(
+      () => Promise.resolve(60)
+    )
+    findLastWarning = jest.fn<Promise<MeasurementWarning | undefined>, [profile: Profile]>()
   }
 
   class PublisherMock implements IMeasurementsPublisher {
@@ -50,10 +54,32 @@ describe('measurements', () => {
       expect(repositoryMock.findIrregularsInLast).not.toHaveBeenCalled()
     })
 
+    it('should find the last warning before retrieve the last measurements', async () => {
+      await service.checkCondition(profile, irregularHeartbeat)
+
+      expect(repositoryMock.findActiveWarning).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.findLastWarning).toHaveBeenCalledTimes(1)
+    })
+
     it('should retrieve the last measurements if the current measurement is irregular', async () => {
       await service.checkCondition(profile, irregularHeartbeat)
 
       expect(repositoryMock.findIrregularsInLast).toHaveBeenCalledTimes(1)
+    })
+
+    it('should retrieve the last measurements since the end of the last warning', async () => {
+      const endedAt = new Date()
+
+      repositoryMock.findLastWarning.mockResolvedValueOnce(new MeasurementWarning(randomUUID(), new Date(), randomUUID(), endedAt))
+
+      await service.checkCondition(profile, irregularHeartbeat)
+
+      expect(repositoryMock.findLastWarning).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.findIrregularsInLast).toHaveBeenCalledWith(
+        profile,
+        60,
+        endedAt
+      )
     })
 
     it('should not register a warning if it has less than five irregulars measurements in the last sixty', async () => {
@@ -115,6 +141,17 @@ describe('measurements', () => {
       expect(repositoryMock.findActiveWarning).toHaveBeenCalledTimes(1)
       expect(repositoryMock.registerWarning).not.toHaveBeenCalled()
       expect(repositoryMock.findIrregularsSince).toHaveBeenCalledWith(profile, activeWarning.getStartedAt())
+    })
+
+    it('should not finish the warning if there are less than sixty measurements since the warning start', async () => {
+      repositoryMock.findActiveWarning.mockResolvedValueOnce(new MeasurementWarning(randomUUID(), new Date()))
+      repositoryMock.countSince.mockResolvedValueOnce(15)
+
+      await service.checkCondition(profile, regularHeartbeat)
+
+      expect(repositoryMock.findActiveWarning).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.countSince).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.findIrregularsSince).not.toHaveBeenCalled()
     })
 
     it('should not finish the warning if there is any irregular behaviour in the sixty measurements since the warning start', async () => {

@@ -1,29 +1,19 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common'
-import { IProfilesService } from 'src/modules/profiles/domain/ports/profiles.service';
-import { IMeasurementsService } from '../domain/ports/measurements.service';
-import { MeasurementDTO } from '../dtos/measurement.dto';
-import { HeartbeatMapper } from '../mappers/heartbeat.mapper';
+
+import { MeasurementDTO } from '../dtos/measurement.dto'
+import { ICheckConditionAsync } from '../use-cases/check-condition-async'
 
 @Controller('measurements')
 export class MeasurementsController {
   constructor(
-    @Inject(IProfilesService)
-    private readonly profilesService: IProfilesService,
-    @Inject(IMeasurementsService)
-    private readonly service: IMeasurementsService
+    @Inject(ICheckConditionAsync)
+    private readonly checkConditionAsync: ICheckConditionAsync
   ) {}
 
   @Post()
-  public async register(
-    @Body() measurement: MeasurementDTO
+  public register(
+    @Body() measurementDto: MeasurementDTO
   ) {
-    const profile = await this.profilesService.getByName(measurement.profile)
-
-    await this.service.checkCondition(
-      profile,
-      HeartbeatMapper.measurementToDomain(measurement)
-    )
-
-    return { success: true }
+    return this.checkConditionAsync.execute({ measurementDto })
   }
 }

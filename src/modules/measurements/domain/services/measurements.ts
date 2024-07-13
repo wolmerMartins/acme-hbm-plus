@@ -14,8 +14,17 @@ export class MeasurementsService implements IMeasurementsService {
     private readonly publisher: IMeasurementsPublisher
   ) {}
 
+  private async hasEnoughMeasurementsToFinish(profile: Profile, warning: MeasurementWarning): Promise<boolean> {
+    const count = await this.repository.countSince(profile, warning.getStartedAt())
+
+    return count >= MEASUREMENTS_COUNT
+  }
+
   private async finishWarning(profile: Profile, heartbeat: Heartbeat, warning?: MeasurementWarning): Promise<void> {
     if (!warning) return
+
+    const hasEnoughMeasurementsToFinish = await this.hasEnoughMeasurementsToFinish(profile, warning)
+    if (!hasEnoughMeasurementsToFinish) return
 
     const irregularMeasurements = await this.repository.findIrregularsSince(profile, warning.getStartedAt())
     if (irregularMeasurements.length) return
@@ -31,7 +40,13 @@ export class MeasurementsService implements IMeasurementsService {
   private async registerWarning(profile: Profile, heartbeat: Heartbeat, activeWarning?: MeasurementWarning): Promise<void> {
     if (activeWarning) return
 
-    const irregularMeasurements = await this.repository.findIrregularsInLast(profile, MEASUREMENTS_COUNT)
+    const lastWarning = await this.repository.findLastWarning(profile)
+
+    const irregularMeasurements = await this.repository.findIrregularsInLast(
+      profile,
+      MEASUREMENTS_COUNT,
+      lastWarning?.getEndedAt()
+    )
     if (irregularMeasurements.length < MINIMUM_IRREGULARS_TO_WARNING) return
 
     const warning = new MeasurementWarning(heartbeat.getId(), heartbeat.getDate())

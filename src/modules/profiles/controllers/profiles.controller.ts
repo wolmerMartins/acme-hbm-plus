@@ -1,23 +1,21 @@
 import { Body, Controller, HttpCode, Inject, Post } from '@nestjs/common'
 
-import { IProfilesService } from '../domain/ports/profiles.service'
+import { DefaultResponse } from 'src/commons/default-response'
 import { ProfileDTO } from '../dtos/profile.dto'
-import { ProfileMapper } from '../mappers/profile.mapper'
+import { ICreateProfile } from '../use-cases/create-profile'
 
 @Controller('profiles')
 export class ProfilesController {
   constructor(
-    @Inject(IProfilesService)
-    private readonly service: IProfilesService
+    @Inject(ICreateProfile)
+    private readonly createProfile: ICreateProfile
   ) {}
 
   @Post()
   @HttpCode(201)
-  public async create(
-    @Body() profile: ProfileDTO
-  ) {
-    await this.service.create(ProfileMapper.toDomain(profile))
-
-    return { success: true }
+  public create(
+    @Body() profileDto: ProfileDTO
+  ): Promise<DefaultResponse> {
+    return this.createProfile.execute({ profileDto })
   }
 }
