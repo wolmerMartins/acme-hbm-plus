@@ -1,14 +1,15 @@
 import { Body, Controller, Inject, Post } from '@nestjs/common'
-import { IProfilesService } from 'src/modules/profiles/domain/ports/profiles.service';
-import { IMeasurementsService } from '../domain/ports/measurements.service';
-import { MeasurementDTO } from '../dtos/measurement.dto';
-import { HeartbeatMapper } from '../mappers/heartbeat.mapper';
+
+import { IGetProfileByName } from 'src/modules/profiles/use-cases/get-profile-by-name'
+import { IMeasurementsService } from '../domain/ports/measurements.service'
+import { MeasurementDTO } from '../dtos/measurement.dto'
+import { HeartbeatMapper } from '../mappers/heartbeat.mapper'
 
 @Controller('measurements')
 export class MeasurementsController {
   constructor(
-    @Inject(IProfilesService)
-    private readonly profilesService: IProfilesService,
+    @Inject(IGetProfileByName)
+    private readonly getProfileByName: IGetProfileByName,
     @Inject(IMeasurementsService)
     private readonly service: IMeasurementsService
   ) {}
@@ -17,7 +18,7 @@ export class MeasurementsController {
   public async register(
     @Body() measurement: MeasurementDTO
   ) {
-    const profile = await this.profilesService.getByName(measurement.profile)
+    const profile = await this.getProfileByName.execute({ name: measurement.profile })
 
     await this.service.checkCondition(
       profile,

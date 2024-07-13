@@ -50,6 +50,6 @@ import { GetProfileByNameUseCase } from './use-cases/implementations/get-profile
     }
   ],
   controllers: [ProfilesController],
-  exports: [IProfilesService, IGetProfileByName]
+  exports: [IGetProfileByName]
 })
 export class ProfilesModule {}
