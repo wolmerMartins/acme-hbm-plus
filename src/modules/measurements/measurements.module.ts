@@ -3,6 +3,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter'
 
 import { ProfilesModule } from '../profiles/profiles.module'
 import { IGetProfileByName } from '../profiles/use-cases/get-profile-by-name'
+import { CheckConditionConsumer } from './consumers/check-condition.consumer'
 import { MeasurementsController } from './controllers/measurements.controller'
 import { IMeasurementsPublisher } from './domain/ports/measurements.publisher'
 import { IMeasurementsRepository } from './domain/ports/measurements.repository'
@@ -14,6 +15,8 @@ import { MeasurementsMongoDB } from './repositories/measurements.mongodb'
 import { MeasurementsEventEmitter } from './publishers/measurements.publisher'
 import { ICheckCondition } from './use-cases/check-condition'
 import { CheckConditionUseCase } from './use-cases/implementations/check-condition.usecase'
+import { ICheckConditionAsync } from './use-cases/check-condition-async'
+import { CheckConditionAsyncUseCase } from './use-cases/implementations/check-condition-async.usecase'
 
 @Module({
   imports: [ProfilesModule],
@@ -46,6 +49,15 @@ import { CheckConditionUseCase } from './use-cases/implementations/check-conditi
       inject: [IMeasurementsRepository, IMeasurementsPublisher]
     },
     {
+      provide: ICheckConditionAsync,
+      useFactory() {
+        return new CheckConditionAsyncUseCase(
+          ...arguments as unknown as [EventEmitter2]
+        )
+      },
+      inject: [EventEmitter2]
+    },
+    {
       provide: ICheckCondition,
       useFactory() {
         return new CheckConditionUseCase(
@@ -53,7 +65,8 @@ import { CheckConditionUseCase } from './use-cases/implementations/check-conditi
         )
       },
       inject: [IGetProfileByName, IMeasurementsService]
-    }
+    },
+    CheckConditionConsumer
   ],
   controllers: [MeasurementsController]
 })
