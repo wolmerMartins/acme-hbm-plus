@@ -20,6 +20,9 @@ describe('measurements', () => {
     registerWarning = jest.fn<Promise<void>, [profile: Profile, measurementWarning: MeasurementWarning]>()
     findActiveWarning = jest.fn<Promise<MeasurementWarning | undefined>, [profile: Profile]>()
     finishWarning = jest.fn<Promise<void>, [profile: Profile, measurementWarning: MeasurementWarning]>()
+    countSince = jest.fn<Promise<number>, [profile: Profile, warningStart: Date]>(
+      () => Promise.resolve(60)
+    )
   }
 
   class PublisherMock implements IMeasurementsPublisher {
@@ -115,6 +118,17 @@ describe('measurements', () => {
       expect(repositoryMock.findActiveWarning).toHaveBeenCalledTimes(1)
       expect(repositoryMock.registerWarning).not.toHaveBeenCalled()
       expect(repositoryMock.findIrregularsSince).toHaveBeenCalledWith(profile, activeWarning.getStartedAt())
+    })
+
+    it('should not finish the warning if there are less than sixty measurements since the warning start', async () => {
+      repositoryMock.findActiveWarning.mockResolvedValueOnce(new MeasurementWarning(randomUUID(), new Date()))
+      repositoryMock.countSince.mockResolvedValueOnce(15)
+
+      await service.checkCondition(profile, regularHeartbeat)
+
+      expect(repositoryMock.findActiveWarning).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.countSince).toHaveBeenCalledTimes(1)
+      expect(repositoryMock.findIrregularsSince).not.toHaveBeenCalled()
     })
 
     it('should not finish the warning if there is any irregular behaviour in the sixty measurements since the warning start', async () => {

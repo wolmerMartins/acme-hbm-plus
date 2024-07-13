@@ -93,4 +93,17 @@ export class MeasurementsMongoDB implements IMeasurementsRepository {
       }
     )
   }
+
+  public async countSince(profile: Profile, warningStart: Date): Promise<number> {
+    const count = this.measurementsModel.count(
+      {
+        profileId: profile.getId(),
+        date: {
+          $gt: warningStart
+        }
+      }
+    )
+
+    return count
+  }
 }

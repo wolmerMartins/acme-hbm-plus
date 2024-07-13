@@ -9,6 +9,7 @@ export interface IMeasurementsRepository {
   registerWarning(profile: Profile, measurementWarning: MeasurementWarning): Promise<void>
   findActiveWarning(profile: Profile): Promise<MeasurementWarning | undefined>
   finishWarning(profile: Profile, measurementWarning: MeasurementWarning): Promise<void>
+  countSince(profile: Profile, warningStart: Date): Promise<number>
 }
 
 export const IMeasurementsRepository = Symbol('IMeasurementsRepository')

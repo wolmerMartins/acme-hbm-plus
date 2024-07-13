@@ -14,8 +14,17 @@ export class MeasurementsService implements IMeasurementsService {
     private readonly publisher: IMeasurementsPublisher
   ) {}
 
+  private async hasEnoughMeasurementsToFinish(profile: Profile, warning: MeasurementWarning): Promise<boolean> {
+    const count = await this.repository.countSince(profile, warning.getStartedAt())
+
+    return count >= MEASUREMENTS_COUNT
+  }
+
   private async finishWarning(profile: Profile, heartbeat: Heartbeat, warning?: MeasurementWarning): Promise<void> {
     if (!warning) return
+
+    const hasEnoughMeasurementsToFinish = await this.hasEnoughMeasurementsToFinish(profile, warning)
+    if (!hasEnoughMeasurementsToFinish) return
 
     const irregularMeasurements = await this.repository.findIrregularsSince(profile, warning.getStartedAt())
     if (irregularMeasurements.length) return
